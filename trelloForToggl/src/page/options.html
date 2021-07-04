@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>togglo Options</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="../bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../lib/jquery-3.4.1.min.js"></script>
+    <script src="../bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../lib/analytics.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <img src="../icon/togglo-48.png" alt="" class="img-fluid">
+            togglo options</h1>
+        <form>
+            <div class="form-group">
+                <h2>Section setting</h2>
+                <p>
+                    <h5><label for="waiting">Waiting Section Name</label></h5>
+                    <input class="form-control" type="text" name="waiting" id="waiting" required>
+                </p>
+                <p>
+                    <h5><label for="working">Working Section Name</label></h5>
+                    <input class="form-control" type="text" name="working" id="working" required>
+                </p>
+                <p>
+                    <h5><label for="completed">Completed Section Name</label></h5>
+                    <input class="form-control" type="text" name="completed" id="completed" required>
+                </p>
+
+                <h2>trello setting</h2>
+                <p>
+                    <h5><label for="trello-key">trello API Key</label></h5>
+                    <input class="form-control" type="text" name="trello-key" id="trello-key" required>
+                    <a href="https://trello.com/1/appKey/generate" target="_blank">Get Trello API Key</a>
+                </p>
+                <p>
+                    <h5><label for="trello-token">trello token</label></h5>
+                    <input class="form-control" type="text" name="trello-token" id="trello-token" required>
+                    <p>
+                        <blockquote class="blockquote" style="word-break: break-all;">
+                            <span style="font-size:medium;">Trello token access url</span>
+                            <footer class="blockquote-footer">https://trello.com/1/authorize?key=[your API
+                                Key]&name=&expiration=never&response_type=token&scope=read,write</footer>
+                        </blockquote>
+
+                    </p>
+                </p>
+
+                <h2>toggl setting</h2>
+                <p>
+                    <h5><label for="toggl-token">toggl token</label></h5>
+                    <input class="form-control" type="text" name="toggl-token" id="toggl-token" required>
+                    <a href="https://toggl.com/app/profile" target="_blank">Get Toggl token</a>
+                </p>
+
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-primary" name="save" type="button">UPDATE</button>
+                <span id="status"></span>
+            </div>
+        </form>
+    </div>
+
+    <script src="../js/options.js"></script>
+</body>
+
+</html>

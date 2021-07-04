@@ -1,0 +1,48 @@
+{
+  "name": "togglo - toggl tracking for trello",
+  "short_name": "togglo",
+  "version": "1.0.1",
+  "manifest_version": 2,
+  "description": "Operate the toggl when you move the trello card.",
+  "icons": {
+    "16": "./src/icon/togglo-16.png",
+    "48": "./src/icon/togglo-48.png",
+    "128": "./src/icon/togglo-128.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "./src/icon/togglo-48.png"
+    },
+    "default_title": "toggl for trello",
+    "default_popup": "./src/page/popup.html"
+  },
+  "options_page": "./src/page/options.html",
+  "permissions": [
+    "background",
+    "storage",
+    "notifications",
+    "*://*.toggl.com/*",
+    "*://*.trello.com/*"
+  ],
+  "content_security_policy": "script-src 'self' https://ssl.google-analytics.com; object-src 'self'",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://trello.com/b/*"
+      ],
+      "js": [
+        "./src/lib/push.min.js",
+        "./src/js/content.js"
+      ],
+      "css": [
+        "./src/css/togglo.css"
+      ]
+    }
+  ],
+  "background": {
+    "scripts": [
+      "./src/js/background.js"
+    ],
+    "persistent": false
+  }
+}
