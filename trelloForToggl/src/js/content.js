@@ -9,7 +9,15 @@ window.onload = async function () {
 
     //operation user
     let membersByApi = await getMemberList(boardId);
-    let membersByScreen = this.document.getElementsByClassName('js-open-header-member-menu');
+
+    let membersByScreen=[];
+    do {
+        console.log('ユーザ名の取得中...')
+        await new Promise(resolve => setTimeout(resolve, 500)) // 0.5秒待つ
+        membersByScreen = this.document.getElementsByClassName('js-open-header-member-menu');
+    } while (membersByScreen.length === 0);
+
+
     let userNameByScreen;
     forEach.call(membersByScreen, function (member) {
         userNameByScreen = member.title.match(/\((.+)\)/)[1];
@@ -36,13 +44,22 @@ window.onload = async function () {
 
     //setting observer
     const laneObserver = this.getObserver(initCardList, userInfo, lanesByApi, boardId, sectionNames);
-    let observeTargetLaneList = this.document.getElementsByClassName('list-cards u-fancy-scrollbar u-clearfix js-list-cards js-sortable ui-sortable');
+    
+
+    let observeTargetLaneList=[];
+    do {
+        console.log('レーンの取得中...')
+        await new Promise(resolve => setTimeout(resolve, 500)) // 0.5秒待つ
+        observeTargetLaneList = this.document.getElementsByClassName('list-cards u-fancy-scrollbar u-clearfix js-list-cards js-sortable ui-sortable');
+    } while (observeTargetLaneList.length === 0);
+
     forEach.call(observeTargetLaneList, function (lane) {
         const config = {
             childList: true,
             attributes: true,
             subtree: true
         };
+
         laneObserver.observe(lane, config);
     });
 };
@@ -108,6 +125,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                         }
 
                         if (memberIds.indexOf(userInfo.id) === -1 && preCard.members.indexOf(userInfo.id) !== -1) {
+                            console.log('card action toggl stop')
                             // delete me of member
                             togglCurrent().then(res => {
                                 if (res && preCard.name === res.description) {
@@ -119,6 +137,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                                 }
                             })
                         } else if (memberIds.indexOf(userInfo.id) !== -1 && preCard.members.indexOf(userInfo.id) === -1) {
+                            console.log('card action toggl start')
                             // add me of member
                             togglStart(preCard)
                                 .then(res => {
@@ -164,6 +183,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     // TODO -> DOING ...toggl start
                     // TODO以外 -> DOING ...toggl start
                     if (position === sectionNames.workingSection) {
+                        console.log('card action toggl start')
+
                         togglStart(preCard)
                             .then(res => {
                                 const startStr = `start time: ${res.startDate}`
@@ -174,6 +195,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     // DOING -> DONE ...toggl stop (finish)
                     // DOING -> DONE以外 ...toggl stop (retire)
                     if (preCard.position === sectionNames.workingSection) {
+                        console.log('card action toggl stop')
+
                         togglCurrent().then(res => {
                             if (res && preCard.name === res.description) {
                                 togglStop(res.id).then(res => {
