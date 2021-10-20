@@ -84,6 +84,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     if (target.tagName !== "A" || !target.href) {
                         return;
                     }
+                    console.log('カード追加')
 
                     //一度仮でカードを追加する
                     let uriMatch = target.getAttribute('href').match(/^\/c\/(.+)\/.+/);
@@ -92,7 +93,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     initCardList.push(newCard);
 
                     //非同期であとからカードリストの正式な状態を更新する
-                    updateInitCards(boardId, laneList, initCardList);
+                    updateInitCards(boardId, laneList)
+                         .then((updateCardList) => initCardList = updateCardList);
 
                 } else if (initCardList.length > cards.length) {
 
@@ -100,7 +102,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     //一度仮でカードリストから削除する
                     initCardList.pop();
                     //非同期であとからカードリストの正式な状態を更新する
-                    updateInitCards(boardId, laneList, initCardList);
+                    updateInitCards(boardId, laneList)
+                         .then((updateCardList) => initCardList = updateCardList);
 
                 } else {
                     const target = mutation.target;
@@ -120,7 +123,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                             //一度仮でカードを更新する
                             preCard.members = memberIds;
                             //非同期であとからカードリストの正式な状態を更新する
-                            updateInitCards(boardId, laneList, initCardList);
+                            updateInitCards(boardId, laneList)
+                                 .then((updateCardList) => initCardList = updateCardList);
                             return;
                         }
 
@@ -149,7 +153,64 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                         //一度仮でカードを更新する
                         preCard.members = memberIds;
                         //非同期であとからカードリストの正式な状態を更新する
-                        updateInitCards(boardId, laneList, initCardList);
+                        updateInitCards(boardId, laneList)
+                             .then((updateCardList) => initCardList = updateCardList);
+                        return;
+                    }
+
+                    //カードの名前変更
+                    if (target.tagName === "SPAN" && target.getAttribute('class') === "list-card-title js-card-name") {
+                        let cardId;
+                        try {
+                            cardId = getCardId(target.parentNode.parentNode);
+                        } catch (err) {
+                            return;
+                        }
+                        //非同期であとからカードリストの正式な状態を更新する
+                        updateInitCards(boardId, laneList)
+                            .then((updateCardList) => {
+                                initCardList = updateCardList;
+                                //動かす前のカードの情報を取得
+                                let preCard = initCardList.filter((initCard) => initCard.id === cardId)[0];
+                                if (preCard.position === sectionNames.workingSection && preCard.members.indexOf(userInfo.id) === 0) {
+                                    togglCurrent().then(res => {
+                                        if (res && preCard.name !== res.description) {
+                                            console.log('計測中のカードを再計測開始')
+                                            togglStart(preCard)
+                                                .then(res => {
+                                                    const startStr = `start time: ${res.startDate}`
+                                                    push('toggl restart!', startStr);
+                                                })
+                                        }
+                                    })
+                                }
+                            });
+                        return;
+                    }
+
+                    //ラベルの状態変更
+                    if (target.tagName === "DIV" && target.getAttribute('class') === "list-card-labels js-card-labels") {
+                        console.log('ラベルの状態変更')
+                        const cardId = getCardId(target.parentNode.parentNode);
+                        //非同期であとからカードリストの正式な状態を更新する
+                        updateInitCards(boardId, laneList)
+                            .then((updateCardList) => {
+                                initCardList = updateCardList
+                                //動かす前のカードの情報を取得
+                                let preCard = initCardList.filter((initCard) => initCard.id === cardId)[0];
+                                if (preCard.position === sectionNames.workingSection && preCard.members.indexOf(userInfo.id) === 0) {
+                                    togglCurrent().then(res => {
+                                        if (res && JSON.stringify(preCard.labels) !== JSON.stringify(res.tags)) {
+                                            console.log('計測中のカードを再計測開始')
+                                            togglStart(preCard)
+                                                .then(res => {
+                                                    const startStr = `start time: ${res.startDate}`
+                                                    push('toggl restart!', startStr);
+                                                })
+                                        }
+                                    })
+                                }
+                            });
                         return;
                     }
 
@@ -159,7 +220,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     }
 
                     //動かしたカードの現在情報を取得
-                    let cardId = target.getAttribute('href').match(/^\/c\/(.+)\/.+/)[1];
+                    let cardId = getCardId(target);
                     let position = target.parentNode.parentNode.querySelector('h2').textContent;
 
                     //動かす前のカードの情報を取得
@@ -175,7 +236,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                         //一度仮でカードを更新する
                         preCard.position = position;
                         //非同期であとからカードリストの正式な状態を更新する
-                        updateInitCards(boardId, laneList, initCardList);
+                        updateInitCards(boardId, laneList)
+                             .then((updateCardList) => initCardList = updateCardList);
                         return;
                     }
 
@@ -217,7 +279,8 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     //一度仮でカードを更新する
                     preCard.position = position;
                     //非同期であとからカードリストの正式な状態を更新する
-                    updateInitCards(boardId, laneList, initCardList);
+                    updateInitCards(boardId, laneList)
+                         .then((updateCardList) => initCardList = updateCardList);
                 }
             }
         });
@@ -225,6 +288,12 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
 
 }
 
+/**
+ * カード(aタグ)からIDを抽出する
+ */
+function getCardId(target){
+    return target.getAttribute('href').match(/^\/c\/(.+)\/.+/)[1];
+}
 
 function push(message, message2) {
     if (Push.Permission.has()) {
@@ -245,19 +314,14 @@ function push(message, message2) {
  * initCardListの状態を非同期で最新にする
  * @param {*} boardId 
  * @param {*} laneList 
- * @param {*} initCardList 
  */
-function updateInitCards(boardId, laneList, initCardList) {
+async function updateInitCards(boardId, laneList) {
     //API callが早すぎるとTrelloの更新が間に合わないのでsleepを入れる
     const _sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    _sleep(200).then(res => {
-        getCards(boardId).then(cardListByApi => {
-            let updatedCardList = convertCards(laneList, cardListByApi);
-            initCardList = updatedCardList;
-        });
-    });
-
-
+    await _sleep(200);
+    const cardListByApi = await getCards(boardId);
+    let updatedCardList = convertCards(laneList, cardListByApi);
+    return updatedCardList;
 }
 
 /**
