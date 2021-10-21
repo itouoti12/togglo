@@ -154,18 +154,19 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                         preCard.members = memberIds;
                         //非同期であとからカードリストの正式な状態を更新する
                         updateInitCards(boardId, laneList)
-                             .then((updateCardList) => initCardList = updateCardList);
+                            .then((updateCardList) => initCardList = updateCardList);
                         return;
                     }
 
                     //カードの名前変更
                     if (target.tagName === "SPAN" && target.getAttribute('class') === "list-card-title js-card-name") {
-                        let cardId;
-                        try {
-                            cardId = getCardId(target.parentNode.parentNode);
-                        } catch (err) {
+                        //カードのhrefが存在しない場合
+                        const card = target.parentNode.parentNode;
+                        if (!card.href) {
                             return;
                         }
+
+                        let cardId = getCardId(card);
                         //非同期であとからカードリストの正式な状態を更新する
                         updateInitCards(boardId, laneList)
                             .then((updateCardList) => {
