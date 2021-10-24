@@ -36,12 +36,12 @@ function restore_options() {
         "trelloToken",
         "togglToken"
     ], function (items) {
-        document.querySelector('[name="waiting"]').value = items.waitingSection;
-        document.querySelector('[name="working"]').value = items.workingSection;
-        document.querySelector('[name="completed"]').value = items.completedSection;
-        document.querySelector('[name="trello-key"]').value = items.trelloKey;
-        document.querySelector('[name="trello-token"]').value = items.trelloToken;
-        document.querySelector('[name="toggl-token"]').value = items.togglToken;
+        document.querySelector('[name="waiting"]').value = items.waitingSection ? items.waitingSection : "";
+        document.querySelector('[name="working"]').value = items.workingSection ? items.workingSection : "";
+        document.querySelector('[name="completed"]').value = items.completedSection ? items.completedSection : "";
+        document.querySelector('[name="trello-key"]').value = items.trelloKey ? items.trelloKey : "";
+        document.querySelector('[name="trello-token"]').value = items.trelloToken ? items.trelloToken : "";
+        document.querySelector('[name="toggl-token"]').value = items.togglToken ? items.togglToken : "";
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);
