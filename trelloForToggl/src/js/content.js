@@ -6,6 +6,29 @@ window.onload = async function () {
 
     // board id
     let boardId = this.document.URL.split("/")[4];
+    // get board name
+    let boardInfo = await getBoardInfo(boardId);
+    // get default workspace id
+    let togglInfo = await myTogglInfo();
+    // get workspace projects
+    let togglProjects = await getTogglProjects(togglInfo.wid);
+
+    let projectId = await getProjectId();
+    if (!projectId) {
+        // convert boardname and projects name -> get projects id
+        let togglTargetProject = togglProjects.find(prj => prj.name === boardInfo.name);
+        if (togglTargetProject) {
+            console.log('projects is exist.')
+            projectId = togglTargetProject.id;
+        } else {
+            console.log('projects is not exist.because make projects.')
+            // if projects is not exist. make projects
+            let createProject = await createTogglProject(boardInfo.name);
+            projectId = createProject.id;
+        }
+    } else {
+        console.log('projectId option settings is using.')
+    }
 
     //operation user
     let membersByApi = await getMemberList(boardId);
@@ -43,7 +66,7 @@ window.onload = async function () {
     let sectionNames = await getSectionNames();
 
     //setting observer
-    const laneObserver = this.getObserver(initCardList, userInfo, lanesByApi, boardId, sectionNames);
+    const laneObserver = this.getObserver(initCardList, userInfo, lanesByApi, boardId, sectionNames, projectId);
     
 
     let observeTargetLaneList=[];
@@ -64,7 +87,7 @@ window.onload = async function () {
     });
 };
 
-function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
+function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, projectId) {
 
     return new MutationObserver((mutations) => {
 
@@ -143,7 +166,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                         } else if (memberIds.indexOf(userInfo.id) !== -1 && preCard.members.indexOf(userInfo.id) === -1) {
                             console.log('card action toggl start')
                             // add me of member
-                            togglStart(preCard)
+                            togglStart(preCard, projectId)
                                 .then(res => {
                                     const startStr = `start time: ${res.startDate}`
                                     push('toggl start!', startStr);
@@ -177,7 +200,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                                     togglCurrent().then(res => {
                                         if (res && preCard.name !== res.description) {
                                             console.log('計測中のカードを再計測開始')
-                                            togglStart(preCard)
+                                            togglStart(preCard, projectId)
                                                 .then(res => {
                                                     const startStr = `start time: ${res.startDate}`
                                                     push('toggl restart!', startStr);
@@ -203,7 +226,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                                     togglCurrent().then(res => {
                                         if (res && JSON.stringify(preCard.labels) !== JSON.stringify(res.tags)) {
                                             console.log('計測中のカードを再計測開始')
-                                            togglStart(preCard)
+                                            togglStart(preCard, projectId)
                                                 .then(res => {
                                                     const startStr = `start time: ${res.startDate}`
                                                     push('toggl restart!', startStr);
@@ -248,7 +271,7 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames) {
                     if (position === sectionNames.workingSection) {
                         console.log('card action toggl start')
 
-                        togglStart(preCard)
+                        togglStart(preCard, projectId)
                             .then(res => {
                                 const startStr = `start time: ${res.startDate}`
                                 push('toggl start!', startStr);
@@ -361,6 +384,20 @@ function convertCards(lanesByApi, cardListByApi, currentToggl) {
 
 /**
  * return json
+ * {
+ *   id:"",
+ *   name:""
+ * }
+ */
+async function getBoardInfo(boardId) {
+    var userPrefix = await getTrelloPrefix();
+    var getBoardInfoSetting = { contentScriptQuery: "getBoardInfo", boardid: boardId, prefix: userPrefix };
+    const result = await backgroundFetch(getBoardInfoSetting);
+    return result;
+}
+
+/**
+ * return json
  * [{
  *   id:"",
  *   username:"",
@@ -405,13 +442,13 @@ async function getCards(boardId) {
     return result;
 }
 
-async function togglStart(card) {
+async function togglStart(card, pid) {
     var items = await getSyncStorageTogglData();
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Basic ' + btoa(items.togglToken + ":api_token")
     };
-    var togglStartSetting = { contentScriptQuery: "togglTimerStart", description: card.name, headers: headers, labels: card.labels };
+    var togglStartSetting = { contentScriptQuery: "togglTimerStart", description: card.name, headers: headers, labels: card.labels, pid:pid };
     const result = await backgroundFetch(togglStartSetting);
     return result;
 }
@@ -445,6 +482,60 @@ async function togglCurrent() {
     };
     var togglStatusCheckSetting = { contentScriptQuery: "togglTimerCurrent", headers: headers };
     const result = await backgroundFetch(togglStatusCheckSetting);
+    return result;
+}
+
+/**
+ * {
+ *  "id": 5412019,
+ *  "wid": 3972388,
+ * }
+ */
+async function myTogglInfo() {
+    // togglConf
+    var items = await getSyncStorageTogglData();
+    const headers = {
+        'Authorization': 'Basic ' + btoa(items.togglToken + ":api_token")
+    };
+    var myTogglInfoSetting = { contentScriptQuery: "getMyTogglInfo", headers: headers };
+    const result = await backgroundFetch(myTogglInfoSetting);
+    return result;
+}
+
+/**
+ * [{
+ *  "id": 5412019,
+ *  "name": "project name",
+ *  "wid": 11122,
+ * }]
+ */
+async function getTogglProjects(wid) {
+    // toggl
+    var items = await getSyncStorageTogglData();
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + btoa(items.togglToken + ":api_token")
+    };
+    var togglProjectsSetting = { contentScriptQuery: "getTogglProjects", headers: headers, wid };
+    const result = await backgroundFetch(togglProjectsSetting);
+    return result;
+}
+
+/**
+ * {
+ *  "id": 5412019,
+ *  "name": "project name",
+ *  "wid": 11122,
+ * }
+ */
+async function createTogglProject(boardName) {
+    var items = await getSyncStorageTogglData();
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + btoa(items.togglToken + ":api_token")
+    };
+    var createTogglProjectSetting = { contentScriptQuery: "createTogglProject", headers: headers, projectName: boardName};
+    const result = await backgroundFetch(createTogglProjectSetting);
     return result;
 }
 
@@ -490,6 +581,20 @@ function getSyncStorageTrelloData() {
 function getSyncStorageTogglData() {
     return new Promise(function (resolve) {
         chrome.storage.sync.get(["togglToken"],
+            function (items) {
+                resolve(items);
+            });
+    });
+}
+
+async function getProjectId() {
+    const result = await getSyncStorageTogglProjectId();
+    return parseInt(result.togglProjectId);
+}
+
+function getSyncStorageTogglProjectId() {
+    return new Promise(function (resolve) {
+        chrome.storage.sync.get(["togglProjectId"],
             function (items) {
                 resolve(items);
             });

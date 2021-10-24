@@ -6,6 +6,7 @@ function save_options() {
     var trelloKey = document.querySelector('[name="trello-key"]').value;
     var trelloToken = document.querySelector('[name="trello-token"]').value;
     var togglToken = document.querySelector('[name="toggl-token"]').value;
+    var togglProjectId = document.querySelector('[name="toggl-projectid"]').value;
 
     chrome.storage.sync.set({
         "waitingSection": waitingSection ? waitingSection : "",
@@ -13,7 +14,8 @@ function save_options() {
         "completedSection": completedSection ? completedSection : "",
         "trelloKey": trelloKey ? trelloKey : "",
         "trelloToken": trelloToken ? trelloToken : "",
-        "togglToken": togglToken ? togglToken : ""
+        "togglToken": togglToken ? togglToken : "",
+        "togglProjectId": togglProjectId ? togglProjectId : ""
     }, function () {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -34,7 +36,8 @@ function restore_options() {
         "completedSection",
         "trelloKey",
         "trelloToken",
-        "togglToken"
+        "togglToken",
+        "togglProjectId"
     ], function (items) {
         document.querySelector('[name="waiting"]').value = items.waitingSection ? items.waitingSection : "";
         document.querySelector('[name="working"]').value = items.workingSection ? items.workingSection : "";
@@ -42,6 +45,7 @@ function restore_options() {
         document.querySelector('[name="trello-key"]').value = items.trelloKey ? items.trelloKey : "";
         document.querySelector('[name="trello-token"]').value = items.trelloToken ? items.trelloToken : "";
         document.querySelector('[name="toggl-token"]').value = items.togglToken ? items.togglToken : "";
+        document.querySelector('[name="toggl-projectid"]').value = items.togglProjectId ? items.togglProjectId : "";
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);

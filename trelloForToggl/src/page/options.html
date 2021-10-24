@@ -48,7 +48,6 @@
                             <footer class="blockquote-footer">https://trello.com/1/authorize?key=[your API
                                 Key]&name=&expiration=never&response_type=token&scope=read,write</footer>
                         </blockquote>
-
                     </p>
                 </p>
 
@@ -57,6 +56,19 @@
                     <h5><label for="toggl-token">toggl token</label></h5>
                     <input class="form-control" type="text" name="toggl-token" id="toggl-token" required>
                     <a href="https://toggl.com/app/profile" target="_blank">Get Toggl token</a>
+                </p>
+
+                <h2>option setting</h2>
+                <p>
+                    <h5><label for="toggl-token">toggl tracking board id</label></h5>
+                    <label>If you want to fix the project for toggl measurement, you can set the project ID.</label>
+                    <input class="form-control" type="text" name="toggl-projectid" id="toggl-projectid" required>
+                    <p>
+                        <blockquote class="blockquote" style="word-break: break-all;">
+                            <span style="font-size:medium;">How to get ProjectId</span>
+                            <footer class="blockquote-footer">Home -> ManageNav -> Projects -> select Project ->URL: https://track.toggl.com/[workspaceId]/projects/[projectId]/team</footer>
+                        </blockquote>
+                    </p>
                 </p>
 
             </div>

@@ -1,6 +1,26 @@
 //api関係の操作をbackground実行
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+        if (request.contentScriptQuery == "getBoardInfo"){
+            console.log('execute getBoardInfo')
+
+            var boardId = request.boardid;
+            var prefix = request.prefix;
+            var preUrl = 'https://trello.com/1/boards/';
+            var url = preUrl + boardId + prefix;
+
+            fetch(url)
+                .then(response => {
+                    response.json()
+                        .then(boardInfo => {
+                            sendResponse({
+                                id: boardInfo.id,
+                                name: boardInfo.name
+                            });
+                        })
+                });
+            return true;
+        }
         if (request.contentScriptQuery == "getMemberList") {
             console.log('execute getMemberList')
 
@@ -79,6 +99,7 @@ chrome.runtime.onMessage.addListener(
                 {
                     "description": request.description,
                     "tags": request.labels,
+                    "pid": request.pid,
                     "created_with": "togglo"
                 }
             };
@@ -122,6 +143,72 @@ chrome.runtime.onMessage.addListener(
                     response.json()
                         .then(res => {
                             sendResponse(res.data);
+                        })
+                });
+            return true;
+        }
+        if (request.contentScriptQuery == "getMyTogglInfo") {
+            console.log('execute get toggl my info')
+
+            var headers = request.headers;
+            var url = "https://api.track.toggl.com/api/v8/me";
+            fetch(url, { headers })
+                .then(response => {
+                    response.json()
+                        .then(res => {
+                            sendResponse({ id: res.data["id"], wid: res.data["default_wid"] });
+                        })
+                });
+            return true;
+        }
+        if (request.contentScriptQuery == "getTogglProjects") {
+            console.log('execute get toggl project list')
+
+            var headers = request.headers;
+            var url = "https://www.toggl.com/api/v8/workspaces/" + request.wid + "/projects";
+            fetch(url, { headers })
+                .then(response => {
+                    response.json()
+                        .then(res => {
+                            var projectList = [];
+                            if (Array.isArray(res)) {
+                                res.forEach(project => {
+                                    projectList.push({
+                                        id: project.id,
+                                        name: project.name,
+                                        wid: project.wid
+                                    });
+                                })
+                            };
+                            sendResponse(projectList);
+                        })
+                });
+            return true;
+        }
+        if (request.contentScriptQuery == "createTogglProject") {
+            console.log('execute createTogglProject')
+
+            var json =
+            {
+                "project": {
+                    "name": request.projectName,
+                    "is_private": false
+                }
+            };
+            const body = JSON.stringify(json);
+            var headers = request.headers;
+            var method = 'POST';
+            var url = "https://api.track.toggl.com/api/v8/projects";
+
+            fetch(url, { method, headers, body })
+                .then(response => {
+                    response.json()
+                        .then(res => {
+                            sendResponse({
+                                id: res.data["id"],
+                                wid: res.data["wid"],
+                                name: res.data["named"],
+                            });
                         })
                 });
             return true;
