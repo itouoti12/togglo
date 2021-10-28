@@ -7,6 +7,7 @@ function save_options() {
     var trelloToken = document.querySelector('[name="trello-token"]').value;
     var togglToken = document.querySelector('[name="toggl-token"]').value;
     var togglProjectId = document.querySelector('[name="toggl-projectid"]').value;
+    var isUseTogglMapping = document.querySelector('[name="isUseTogglMapping"]').checked;
 
     chrome.storage.sync.set({
         "waitingSection": waitingSection ? waitingSection : "",
@@ -15,7 +16,8 @@ function save_options() {
         "trelloKey": trelloKey ? trelloKey : "",
         "trelloToken": trelloToken ? trelloToken : "",
         "togglToken": togglToken ? togglToken : "",
-        "togglProjectId": togglProjectId ? togglProjectId : ""
+        "togglProjectId": togglProjectId ? togglProjectId : "",
+        "isUseTogglMapping": isUseTogglMapping ? isUseTogglMapping: false
     }, function () {
         // Update status to let user know options were saved.
         var status = document.getElementById('status');
@@ -29,6 +31,7 @@ function save_options() {
 // Restores select box and checkbox state using the preferences
 // stored in chrome.storage.
 function restore_options() {
+    document.querySelector('[name="isUseTogglMapping"]').checked
     // Use default value color = 'red' and likesColor = true.
     chrome.storage.sync.get([
         "waitingSection",
@@ -37,7 +40,8 @@ function restore_options() {
         "trelloKey",
         "trelloToken",
         "togglToken",
-        "togglProjectId"
+        "togglProjectId",
+        "isUseTogglMapping"
     ], function (items) {
         document.querySelector('[name="waiting"]').value = items.waitingSection ? items.waitingSection : "";
         document.querySelector('[name="working"]').value = items.workingSection ? items.workingSection : "";
@@ -46,6 +50,7 @@ function restore_options() {
         document.querySelector('[name="trello-token"]').value = items.trelloToken ? items.trelloToken : "";
         document.querySelector('[name="toggl-token"]').value = items.togglToken ? items.togglToken : "";
         document.querySelector('[name="toggl-projectid"]').value = items.togglProjectId ? items.togglProjectId : "";
+        document.querySelector('[name="isUseTogglMapping"]').checked = items.isUseTogglMapping ? items.isUseTogglMapping : false;
     });
 }
 document.addEventListener('DOMContentLoaded', restore_options);

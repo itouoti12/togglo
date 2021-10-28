@@ -13,6 +13,9 @@ window.onload = async function () {
     // get workspace projects
     let togglProjects = await getTogglProjects(togglInfo.wid);
 
+    // isUseTogglMapping
+    let isUseMapping = await isUseTogglMapping();
+
     let projectId = await getProjectId();
     if (!projectId) {
         // convert boardname and projects name -> get projects id
@@ -21,7 +24,7 @@ window.onload = async function () {
             console.log('projects is exist.')
             projectId = togglTargetProject.id;
         } else {
-            console.log('projects is not exist.because make projects.')
+            console.log('projects is not exist. so, make projects.')
             // if projects is not exist. make projects
             let createProject = await createTogglProject(boardInfo.name);
             projectId = createProject.id;
@@ -66,7 +69,7 @@ window.onload = async function () {
     let sectionNames = await getSectionNames();
 
     //setting observer
-    const laneObserver = this.getObserver(initCardList, userInfo, lanesByApi, boardId, sectionNames, projectId);
+    const laneObserver = this.getObserver(initCardList, userInfo, lanesByApi, boardId, sectionNames, projectId, isUseMapping, togglInfo.wid);
     
 
     let observeTargetLaneList=[];
@@ -87,7 +90,7 @@ window.onload = async function () {
     });
 };
 
-function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, projectId) {
+function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, projectId, isUseMapping, workspaceId) {
 
     return new MutationObserver((mutations) => {
 
@@ -165,12 +168,42 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, pr
                             })
                         } else if (memberIds.indexOf(userInfo.id) !== -1 && preCard.members.indexOf(userInfo.id) === -1) {
                             console.log('card action toggl start')
-                            // add me of member
-                            togglStart(preCard, projectId)
-                                .then(res => {
-                                    const startStr = `start time: ${res.startDate}`
-                                    push('toggl start!', startStr);
-                                })
+
+                            if (isUseMapping && preCard.labels.length !== 0 && preCard.labels[0]){
+                                getTogglProjects(workspaceId)
+                                .then(res =>{
+                                    let targetLabelProject = res.find(prj => prj.name === preCard.labels[0]);
+                                    let labelProjectId;
+                                    if (targetLabelProject) {
+                                        console.log('label projects is exist.')
+                                        labelProjectId = targetLabelProject.id;
+                                        togglStart(preCard, labelProjectId)
+                                            .then(res => {
+                                                const startStr = `start time: ${res.startDate}`
+                                                push('toggl start!', startStr);
+                                            })
+                                    } else {
+                                        console.log('label projects is not exist. so, make projects.')
+                                        // if projects is not exist. make projects
+                                        createTogglProject(preCard.labels[0])
+                                        .then(res=>{
+                                            let labelProjectId = res.id;
+                                            togglStart(preCard, labelProjectId)
+                                                .then(res => {
+                                                    const startStr = `start time: ${res.startDate}`
+                                                    push('toggl start!', startStr);
+                                                })
+                                        })
+                                    }
+                                })    
+                            } else {
+                                // add me of member
+                                togglStart(preCard, projectId)
+                                    .then(res => {
+                                        const startStr = `start time: ${res.startDate}`
+                                        push('toggl start!', startStr);
+                                    })
+                            }
                         }
 
                         //一度仮でカードを更新する
@@ -200,11 +233,42 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, pr
                                     togglCurrent().then(res => {
                                         if (res && preCard.name !== res.description) {
                                             console.log('計測中のカードを再計測開始')
-                                            togglStart(preCard, projectId)
-                                                .then(res => {
-                                                    const startStr = `start time: ${res.startDate}`
-                                                    push('toggl restart!', startStr);
-                                                })
+
+                                            if (isUseMapping && preCard.labels.length !== 0 && preCard.labels[0]){
+                                                getTogglProjects(workspaceId)
+                                                .then(res =>{
+                                                    let targetLabelProject = res.find(prj => prj.name === preCard.labels[0]);
+                                                    let labelProjectId;
+                                                    if (targetLabelProject) {
+                                                        console.log('label projects is exist.')
+                                                        labelProjectId = targetLabelProject.id;
+                                                        togglStart(preCard, labelProjectId)
+                                                            .then(res => {
+                                                                const startStr = `start time: ${res.startDate}`
+                                                                push('toggl start!', startStr);
+                                                            })
+                                                    } else {
+                                                        console.log('label projects is not exist. so, make projects.')
+                                                        // if projects is not exist. make projects
+                                                        createTogglProject(preCard.labels[0])
+                                                        .then(res=>{
+                                                            let labelProjectId = res.id;
+                                                            togglStart(preCard, labelProjectId)
+                                                                .then(res => {
+                                                                    const startStr = `start time: ${res.startDate}`
+                                                                    push('toggl start!', startStr);
+                                                                })
+                                                        })
+                                                    }
+                                                })    
+                                            } else {
+                                                // add me of member
+                                                togglStart(preCard, projectId)
+                                                    .then(res => {
+                                                        const startStr = `start time: ${res.startDate}`
+                                                        push('toggl start!', startStr);
+                                                    })
+                                            }
                                         }
                                     })
                                 }
@@ -226,11 +290,42 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, pr
                                     togglCurrent().then(res => {
                                         if (res && JSON.stringify(preCard.labels) !== JSON.stringify(res.tags)) {
                                             console.log('計測中のカードを再計測開始')
-                                            togglStart(preCard, projectId)
-                                                .then(res => {
-                                                    const startStr = `start time: ${res.startDate}`
-                                                    push('toggl restart!', startStr);
-                                                })
+
+                                            if (isUseMapping && preCard.labels.length !== 0 && preCard.labels[0]){
+                                                getTogglProjects(workspaceId)
+                                                .then(res =>{
+                                                    let targetLabelProject = res.find(prj => prj.name === preCard.labels[0]);
+                                                    let labelProjectId;
+                                                    if (targetLabelProject) {
+                                                        console.log('label projects is exist.')
+                                                        labelProjectId = targetLabelProject.id;
+                                                        togglStart(preCard, labelProjectId)
+                                                            .then(res => {
+                                                                const startStr = `start time: ${res.startDate}`
+                                                                push('toggl start!', startStr);
+                                                            })
+                                                    } else {
+                                                        console.log('label projects is not exist. so, make projects.')
+                                                        // if projects is not exist. make projects
+                                                        createTogglProject(preCard.labels[0])
+                                                        .then(res=>{
+                                                            let labelProjectId = res.id;
+                                                            togglStart(preCard, labelProjectId)
+                                                                .then(res => {
+                                                                    const startStr = `start time: ${res.startDate}`
+                                                                    push('toggl start!', startStr);
+                                                                })
+                                                        })
+                                                    }
+                                                })    
+                                            } else {
+                                                // add me of member
+                                                togglStart(preCard, projectId)
+                                                    .then(res => {
+                                                        const startStr = `start time: ${res.startDate}`
+                                                        push('toggl start!', startStr);
+                                                    })
+                                            }
                                         }
                                     })
                                 }
@@ -271,11 +366,41 @@ function getObserver(initCardList, userInfo, laneList, boardId, sectionNames, pr
                     if (position === sectionNames.workingSection) {
                         console.log('card action toggl start')
 
-                        togglStart(preCard, projectId)
-                            .then(res => {
-                                const startStr = `start time: ${res.startDate}`
-                                push('toggl start!', startStr);
-                            })
+                        if (isUseMapping && preCard.labels.length !== 0 && preCard.labels[0]){
+                            getTogglProjects(workspaceId)
+                            .then(res =>{
+                                let targetLabelProject = res.find(prj => prj.name === preCard.labels[0]);
+                                let labelProjectId;
+                                if (targetLabelProject) {
+                                    console.log('label projects is exist.')
+                                    labelProjectId = targetLabelProject.id;
+                                    togglStart(preCard, labelProjectId)
+                                        .then(res => {
+                                            const startStr = `start time: ${res.startDate}`
+                                            push('toggl start!', startStr);
+                                        })
+                                } else {
+                                    console.log('label projects is not exist. so, make projects.')
+                                    // if projects is not exist. make projects
+                                    createTogglProject(preCard.labels[0])
+                                    .then(res=>{
+                                        let labelProjectId = res.id;
+                                        togglStart(preCard, labelProjectId)
+                                            .then(res => {
+                                                const startStr = `start time: ${res.startDate}`
+                                                push('toggl start!', startStr);
+                                            })
+                                    })
+                                }
+                            })    
+                        } else {
+                            // add me of member
+                            togglStart(preCard, projectId)
+                                .then(res => {
+                                    const startStr = `start time: ${res.startDate}`
+                                    push('toggl start!', startStr);
+                                })
+                        }
                     }
 
                     // DOING -> DONE ...toggl stop (finish)
@@ -595,6 +720,20 @@ async function getProjectId() {
 function getSyncStorageTogglProjectId() {
     return new Promise(function (resolve) {
         chrome.storage.sync.get(["togglProjectId"],
+            function (items) {
+                resolve(items);
+            });
+    });
+}
+
+async function isUseTogglMapping() {
+    const result = await getSyncStorageIsUseTogglMapping();
+    return result.isUseTogglMapping;
+}
+
+function getSyncStorageIsUseTogglMapping() {
+    return new Promise(function (resolve) {
+        chrome.storage.sync.get(["isUseTogglMapping"],
             function (items) {
                 resolve(items);
             });
