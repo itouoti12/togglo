@@ -1,12 +1,16 @@
 //api関係の操作をbackground実行
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
+
+        const TRELLO_API_ENDPOINT = "https://trello.com/1"
+        const TOGGL_API_ENDPOINT = "https://api.track.toggl.com/api/v8"
+
         if (request.contentScriptQuery == "getBoardInfo"){
             console.log('execute getBoardInfo')
 
             var boardId = request.boardid;
             var prefix = request.prefix;
-            var preUrl = 'https://trello.com/1/boards/';
+            var preUrl = `${TRELLO_API_ENDPOINT}/boards/`;
             var url = preUrl + boardId + prefix;
 
             fetch(url)
@@ -26,7 +30,7 @@ chrome.runtime.onMessage.addListener(
 
             var boardId = request.boardid;
             var prefix = request.prefix;
-            var preUrl = 'https://trello.com/1/boards/';
+            var preUrl = `${TRELLO_API_ENDPOINT}/boards/`;
             var url = preUrl + boardId + '/members' + prefix;
 
             fetch(url)
@@ -43,7 +47,7 @@ chrome.runtime.onMessage.addListener(
 
             var boardId = request.boardid;
             var prefix = request.prefix;
-            var preUrl = 'https://trello.com/1/boards/';
+            var preUrl = `${TRELLO_API_ENDPOINT}/boards/`;
             var url = preUrl + boardId + '/cards' + prefix;
 
             fetch(url)
@@ -72,7 +76,7 @@ chrome.runtime.onMessage.addListener(
 
             var boardId = request.boardid;
             var prefix = request.prefix;
-            var preUrl = 'https://trello.com/1/boards/';
+            var preUrl = `${TRELLO_API_ENDPOINT}/boards/`;
             var url = preUrl + boardId + '/lists' + prefix;
 
             fetch(url)
@@ -106,7 +110,7 @@ chrome.runtime.onMessage.addListener(
             const body = JSON.stringify(json);
             var headers = request.headers;
             var method = 'POST';
-            var url = "https://www.toggl.com/api/v8/time_entries/start";
+            var url = `${TOGGL_API_ENDPOINT}/time_entries/start`;
 
             fetch(url, { method, headers, body })
                 .then(response => {
@@ -122,7 +126,7 @@ chrome.runtime.onMessage.addListener(
 
             var headers = request.headers;
             var method = 'PUT';
-            var url = "https://www.toggl.com/api/v8/time_entries/" + request.togglId + "/stop";
+            var url = `${TOGGL_API_ENDPOINT}/time_entries/` + request.togglId + "/stop";
 
             fetch(url, { method, headers })
                 .then(response => {
@@ -137,7 +141,7 @@ chrome.runtime.onMessage.addListener(
             console.log('execute togglTimerCurrent')
 
             var headers = request.headers;
-            var url = "https://www.toggl.com/api/v8/time_entries/current";
+            var url = `${TOGGL_API_ENDPOINT}/time_entries/current`;
             fetch(url, { headers })
                 .then(response => {
                     response.json()
@@ -151,7 +155,7 @@ chrome.runtime.onMessage.addListener(
             console.log('execute get toggl my info')
 
             var headers = request.headers;
-            var url = "https://api.track.toggl.com/api/v8/me";
+            var url = `${TOGGL_API_ENDPOINT}/me`;
             fetch(url, { headers })
                 .then(response => {
                     response.json()
@@ -165,7 +169,7 @@ chrome.runtime.onMessage.addListener(
             console.log('execute get toggl project list')
 
             var headers = request.headers;
-            var url = "https://www.toggl.com/api/v8/workspaces/" + request.wid + "/projects";
+            var url = `${TOGGL_API_ENDPOINT}/workspaces/` + request.wid + "/projects";
             fetch(url, { headers })
                 .then(response => {
                     response.json()
@@ -198,7 +202,7 @@ chrome.runtime.onMessage.addListener(
             const body = JSON.stringify(json);
             var headers = request.headers;
             var method = 'POST';
-            var url = "https://api.track.toggl.com/api/v8/projects";
+            var url = `${TOGGL_API_ENDPOINT}/projects`;
 
             fetch(url, { method, headers, body })
                 .then(response => {
